@@ -1,0 +1,344 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: oklch(0.98 0 0);
+  --foreground: oklch(0.15 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0 0);
+  --primary: oklch(0.2 0.15 273);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.95 0.05 0);
+  --secondary-foreground: oklch(0.2 0.15 273);
+  --muted: oklch(0.93 0 0);
+  --muted-foreground: oklch(0.56 0 0);
+  --accent: oklch(0.65 0.2 265);
+  --accent-foreground: oklch(1 0 0);
+  --destructive: oklch(0.58 0.25 27);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.92 0 0);
+  --input: oklch(0.92 0 0);
+  --ring: oklch(0.71 0 0);
+  --chart-1: oklch(0.65 0.22 41);
+  --chart-2: oklch(0.6 0.12 185);
+  --chart-3: oklch(0.4 0.07 227);
+  --chart-4: oklch(0.83 0.19 84);
+  --chart-5: oklch(0.77 0.19 70);
+  --radius: 0.5rem;
+  --sidebar: oklch(0.98 0 0);
+  --sidebar-foreground: oklch(0.15 0 0);
+  --sidebar-primary: oklch(0.2 0.15 273);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.95 0.05 0);
+  --sidebar-accent-foreground: oklch(0.2 0.15 273);
+  --sidebar-border: oklch(0.92 0 0);
+  --sidebar-ring: oklch(0.71 0 0);
+}
+
+.dark {
+  --background: oklch(0.15 0 0);
+  --foreground: oklch(0.98 0 0);
+  --card: oklch(0.2 0 0);
+  --card-foreground: oklch(0.98 0 0);
+  --popover: oklch(0.2 0 0);
+  --popover-foreground: oklch(0.98 0 0);
+  --primary: oklch(0.65 0.2 265);
+  --primary-foreground: oklch(0.15 0 0);
+  --secondary: oklch(0.3 0.05 0);
+  --secondary-foreground: oklch(0.98 0 0);
+  --muted: oklch(0.3 0 0);
+  --muted-foreground: oklch(0.7 0 0);
+  --accent: oklch(0.65 0.2 265);
+  --accent-foreground: oklch(0.15 0 0);
+  --destructive: oklch(0.4 0.15 25);
+  --destructive-foreground: oklch(0.64 0.24 25);
+  --border: oklch(0.3 0 0);
+  --input: oklch(0.3 0 0);
+  --input-foreground: oklch(0.98 0 0);
+  --ring: oklch(0.65 0.2 265);
+  --chart-1: oklch(0.49 0.24 264);
+  --chart-2: oklch(0.7 0.17 162);
+  --chart-3: oklch(0.77 0.19 70);
+  --chart-4: oklch(0.63 0.27 304);
+  --chart-5: oklch(0.65 0.25 16);
+  --sidebar: oklch(0.2 0 0);
+  --sidebar-foreground: oklch(0.98 0 0);
+  --sidebar-primary: oklch(0.65 0.2 265);
+  --sidebar-primary-foreground: oklch(0.15 0 0);
+  --sidebar-accent: oklch(0.3 0.05 0);
+  --sidebar-accent-foreground: oklch(0.98 0 0);
+  --sidebar-border: oklch(0.3 0 0);
+  --sidebar-ring: oklch(0.65 0.2 265);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  input {
+    @apply placeholder:text-muted-foreground;
+  }
+}
+
+/* Editor Styles */
+.editor-content {
+  @apply text-foreground min-h-[500px];
+}
+
+.editor-content h1 {
+  @apply text-4xl font-bold mt-8 mb-6 text-foreground;
+}
+
+.editor-content h2 {
+  @apply text-2xl font-bold mt-6 mb-4 text-foreground;
+}
+
+.editor-content h3 {
+  @apply text-xl font-bold mt-5 mb-3 text-foreground;
+}
+
+.editor-content h4 {
+  @apply text-lg font-semibold mt-4 mb-2 text-foreground;
+}
+
+.editor-content h5 {
+  @apply text-base font-semibold mt-3 mb-2 text-foreground;
+}
+
+.editor-content h6 {
+  @apply text-sm font-semibold mt-2 mb-1 text-foreground;
+}
+
+.editor-content p {
+  @apply my-3 leading-relaxed text-foreground;
+}
+
+.editor-content ul,
+.editor-content ol {
+  @apply my-3 ml-6;
+}
+
+.editor-content li {
+  @apply my-1 text-foreground;
+}
+
+.editor-content table {
+  @apply border-collapse border border-border w-full my-4;
+}
+
+.editor-content th,
+.editor-content td {
+  @apply border border-border p-3 text-foreground;
+}
+
+.editor-content th {
+  @apply bg-muted font-semibold text-foreground;
+}
+
+.editor-content a {
+  @apply text-primary underline hover:opacity-80 transition-opacity;
+}
+
+.editor-content img {
+  @apply max-w-full h-auto my-4 rounded-lg;
+}
+
+.editor-content strong {
+  @apply font-bold;
+}
+
+.editor-content em {
+  @apply italic;
+}
+
+.editor-content u {
+  @apply underline;
+}
+
+.editor-content blockquote {
+  @apply border-l-4 border-primary pl-4 my-4 italic text-muted-foreground;
+}
+
+.editor-content hr {
+  @apply border-0 border-t border-border my-6;
+}
+
+.editor-content mark {
+  @apply rounded px-1;
+}
+
+/* Text alignment */
+.editor-content [style*="text-align: center"] {
+  text-align: center;
+}
+
+.editor-content [style*="text-align: right"] {
+  text-align: right;
+}
+
+.editor-content [style*="text-align: justify"] {
+  text-align: justify;
+}
+
+/* Color support */
+.editor-content [style*="color:"] {
+  /* Preserve inline color styles */
+}
+
+.is-editor-empty:before {
+  @apply text-muted-foreground;
+  content: attr(data-placeholder);
+  float: left;
+  pointer-events: none;
+  height: 0;
+}
+
+/* Prose customization */
+.prose {
+  @apply text-foreground;
+}
+
+.prose p {
+  @apply text-base;
+}
+
+/* Placeholder styling */
+span[data-placeholder-key] {
+  @apply bg-primary/20 text-primary px-2 py-1 rounded font-medium cursor-pointer transition-colors;
+}
+
+span[data-placeholder-key]:hover {
+  @apply bg-primary/30;
+}
+
+/* Code block styling */
+.editor-content pre {
+  @apply bg-muted p-4 rounded-lg my-4 overflow-x-auto border border-border;
+}
+
+.editor-content pre code {
+  @apply text-sm font-mono text-foreground;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+.editor-content code {
+  @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-foreground;
+}
+
+.editor-content .code-block {
+  @apply bg-muted p-4 rounded-lg my-4 overflow-x-auto border border-border;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Professional editor enhancements */
+.editor-content {
+  line-height: 1.7;
+}
+
+.editor-content p {
+  margin-bottom: 1rem;
+}
+
+.editor-content ul, .editor-content ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.editor-content li {
+  margin-bottom: 0.25rem;
+}
+
+/* Table styling improvements */
+.editor-content table {
+  @apply shadow-sm;
+}
+
+.editor-content th {
+  @apply font-semibold text-left;
+}
+
+.editor-content td, .editor-content th {
+  @apply px-4 py-2;
+}
+
+/* Focus and accessibility */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  @apply outline-2 outline-offset-2 outline-ring;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  @apply w-2 h-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-border rounded-full hover:bg-muted-foreground;
+}
+
+/* Color picker animations */
+@keyframes fadeInSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
