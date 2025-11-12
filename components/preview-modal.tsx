@@ -11,12 +11,20 @@ export function PreviewModal({ content, onClose }) {
   const [exportFormat, setExportFormat] = useState<"pdf" | "html">("pdf")
 
   const handleExportFromPreview = async () => {
-    if (content) {
+    if (!content || content.trim().length === 0) {
+      alert("No content to export. Please add some content to your proposal first.")
+      return
+    }
+    
+    try {
       if (exportFormat === "pdf") {
         await exportToPDF(content, "proposal-preview.pdf")
       } else {
         exportHTML()
       }
+    } catch (error) {
+      console.error("Export error:", error)
+      // Error is already handled in exportToPDF function
     }
   }
 
@@ -72,24 +80,34 @@ export function PreviewModal({ content, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <Card className="w-full max-w-4xl my-auto">
-        <div className="flex justify-between items-center sticky top-0 bg-card p-4 border-b border-border gap-2 flex-wrap">
-          <h2 className="text-lg font-semibold text-foreground">Proposal Preview</h2>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+      <Card className="w-full max-w-4xl my-auto shadow-2xl border-border/50 animate-scaleIn">
+        <div className="flex justify-between items-center sticky top-0 bg-card/95 backdrop-blur-xl p-4 border-b border-border/50 gap-2 flex-wrap z-10">
+          <h2 className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">Proposal Preview</h2>
           <div className="flex gap-2 flex-wrap">
             <select
               value={exportFormat}
               onChange={(e) => setExportFormat(e.target.value as "pdf" | "html")}
-              className="px-3 py-1 rounded border border-border bg-background text-foreground text-sm"
+              className="px-3 py-2 rounded-lg border border-border/50 bg-background/80 backdrop-blur-sm text-foreground text-sm hover:border-primary/50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
             >
               <option value="pdf">Export as PDF</option>
               <option value="html">Export as HTML</option>
             </select>
-            <Button size="sm" variant="outline" onClick={handleExportFromPreview}>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={handleExportFromPreview}
+              className="hover:scale-105 transition-all duration-200 hover:shadow-md"
+            >
               <Download className="w-4 h-4 mr-1" />
               Export
             </Button>
-            <Button size="sm" variant="outline" onClick={handleCopyHTML}>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={handleCopyHTML}
+              className="hover:scale-105 transition-all duration-200 hover:shadow-md"
+            >
               {copied ? (
                 <>
                   <Check className="w-4 h-4 mr-1" />
@@ -102,13 +120,18 @@ export function PreviewModal({ content, onClose }) {
                 </>
               )}
             </Button>
-            <Button variant="ghost" size="sm" onClick={onClose}>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={onClose}
+              className="hover:scale-105 transition-all duration-200 hover:bg-destructive/10 hover:text-destructive"
+            >
               <X className="w-4 h-4" />
             </Button>
           </div>
         </div>
-        <div className="p-8 max-h-[calc(90vh-120px)] overflow-y-auto">
-          <div className="bg-card rounded-lg border border-border p-8">
+        <div className="p-8 max-h-[calc(90vh-120px)] overflow-y-auto bg-gradient-to-b from-background to-muted/10">
+          <div className="bg-card/80 backdrop-blur-sm rounded-xl border border-border/50 p-8 md:p-12 shadow-xl">
             <div className="prose dark:prose-invert max-w-none prose-p:my-2 prose-h1:mt-6 prose-h1:mb-4 prose-h2:mt-5 prose-h2:mb-3">
               <div dangerouslySetInnerHTML={{ __html: content }} />
             </div>

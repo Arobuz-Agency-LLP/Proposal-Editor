@@ -126,9 +126,28 @@
   }
 }
 
+@layer utilities {
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  .animate-scaleIn {
+    animation: scaleIn 0.3s ease-out;
+  }
+  
+  .animate-slideInFromRight {
+    animation: slideInFromRight 0.3s ease-out;
+  }
+}
+
 /* Editor Styles */
 .editor-content {
   @apply text-foreground min-h-[500px];
+  @apply focus-within:outline-none;
+}
+
+.editor-content:focus-within {
+  @apply outline-none;
 }
 
 .editor-content h1 {
@@ -170,15 +189,100 @@
 
 .editor-content table {
   @apply border-collapse border border-border w-full my-4;
+  table-layout: auto;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.editor-content .table-wrapper {
+  @apply overflow-x-auto my-4;
+  width: 100%;
+  max-width: 100%;
 }
 
 .editor-content th,
 .editor-content td {
   @apply border border-border p-3 text-foreground;
+  min-width: 0;
+  width: auto;
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  vertical-align: top;
+  box-sizing: border-box;
+  overflow: hidden;
+  position: relative;
 }
 
 .editor-content th {
   @apply bg-muted font-semibold text-foreground;
+  width: auto;
+  max-width: 100%;
+  overflow: hidden;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.editor-content th p,
+.editor-content td p {
+  margin: 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.editor-content table tbody,
+.editor-content table thead {
+  width: 100%;
+  display: table-row-group;
+}
+
+.editor-content table tr {
+  width: 100%;
+  display: table-row;
+}
+
+.editor-content table colgroup {
+  display: none;
+}
+
+/* Ensure table cells don't expand beyond table width */
+.editor-content table * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.editor-content table th *,
+.editor-content table td * {
+  max-width: 100% !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  word-break: break-word !important;
+  box-sizing: border-box !important;
+}
+
+/* Prevent content from breaking out of cells */
+.editor-content table th > *,
+.editor-content table td > * {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Ensure paragraphs and other block elements in cells wrap */
+.editor-content table th p,
+.editor-content table td p,
+.editor-content table th div,
+.editor-content table td div {
+  max-width: 100% !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  word-break: break-word !important;
+  overflow: hidden;
 }
 
 .editor-content a {
@@ -257,6 +361,26 @@ span[data-placeholder-key]:hover {
   @apply bg-primary/30;
 }
 
+/* Page break styling */
+.editor-content .page-break,
+.editor-content div[data-type="page-break"] {
+  @apply my-8 py-4 border-t-2 border-dashed border-primary/30 relative;
+  page-break-after: always;
+  break-after: page;
+}
+
+.editor-content .page-break::before,
+.editor-content div[data-type="page-break"]::before {
+  content: "Page Break";
+  @apply absolute left-1/2 -translate-x-1/2 -top-3 px-3 py-1 bg-primary/10 text-primary text-xs font-semibold rounded-full border border-primary/20;
+}
+
+.editor-content .page-break::after,
+.editor-content div[data-type="page-break"]::after {
+  content: "";
+  @apply absolute left-0 right-0 top-1/2 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent;
+}
+
 /* Code block styling */
 .editor-content pre {
   @apply bg-muted p-4 rounded-lg my-4 overflow-x-auto border border-border;
@@ -320,7 +444,7 @@ textarea:focus-visible {
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
-  @apply w-2 h-2;
+  @apply w-2.5 h-2.5;
 }
 
 ::-webkit-scrollbar-track {
@@ -328,10 +452,10 @@ textarea:focus-visible {
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-border rounded-full hover:bg-muted-foreground;
+  @apply bg-border/60 rounded-full hover:bg-muted-foreground/60 transition-colors;
 }
 
-/* Color picker animations */
+/* Enhanced animations */
 @keyframes fadeInSlideDown {
   from {
     opacity: 0;
@@ -341,4 +465,93 @@ textarea:focus-visible {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+/* Smooth transitions */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Glassmorphism utility */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Gradient backgrounds */
+.gradient-bg {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+}
+
+/* Enhanced focus states */
+.focus-ring {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+}
+
+/* Smooth hover effects */
+.hover-lift {
+  @apply transition-transform duration-200 hover:scale-105 hover:shadow-lg;
+}
+
+/* Pulse animation for active states */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0);
+  }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

@@ -29,15 +29,15 @@ export function ProposalEditor() {
   }, [content])
 
   return (
-    <div className="flex h-[calc(100vh-80px)] gap-0">
+    <div className="flex h-[calc(100vh-80px)] gap-0 relative">
       {/* Main Editor Area - 70% */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden relative">
         <EditorToolbar editor={editorInstance} />
         <TiptapEditor onEditorReady={setEditorInstance} />
       </div>
 
       {/* Sidebar - 30% */}
-      <div className="w-[30%] border-l border-border overflow-y-auto">
+      <div className="w-[30%] border-l border-border/50 bg-gradient-to-b from-card/50 to-background overflow-y-auto backdrop-blur-sm">
         <EditorSidebar
           onPreview={() => setShowPreview(true)}
           onShowProposals={() => setShowProposalsList(true)}
@@ -46,10 +46,18 @@ export function ProposalEditor() {
       </div>
 
       {/* Preview Modal */}
-      {showPreview && <PreviewModal content={content} onClose={() => setShowPreview(false)} />}
+      {showPreview && (
+        <div className="animate-fadeIn">
+          <PreviewModal content={content} onClose={() => setShowPreview(false)} />
+        </div>
+      )}
 
       {/* Proposals List Modal */}
-      {showProposalsList && <ProposalsList onClose={() => setShowProposalsList(false)} />}
+      {showProposalsList && (
+        <div className="animate-fadeIn">
+          <ProposalsList onClose={() => setShowProposalsList(false)} />
+        </div>
+      )}
     </div>
   )
 }

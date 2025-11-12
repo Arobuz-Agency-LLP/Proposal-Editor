@@ -41,8 +41,10 @@ import {
   Square,
   Merge,
   Split,
+  FileText,
 } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
+import { TableInsertDialog } from "./table-insert-dialog"
 
 export function EditorToolbar({ editor }) {
   const [showColorPicker, setShowColorPicker] = useState(false)
@@ -65,6 +67,7 @@ export function EditorToolbar({ editor }) {
   const [showCellBgColorPicker, setShowCellBgColorPicker] = useState(false)
   const [showBulletMenu, setShowBulletMenu] = useState(false)
   const [showQuickInsertMenu, setShowQuickInsertMenu] = useState(false)
+  const [showTableInsertDialog, setShowTableInsertDialog] = useState(false)
   const colorPickerRef = useRef<HTMLDivElement>(null)
   const highlightPickerRef = useRef<HTMLDivElement>(null)
   const tableMenuRef = useRef<HTMLDivElement>(null)
@@ -180,16 +183,111 @@ export function EditorToolbar({ editor }) {
   const highlightColors = Object.values(highlightPalette).flat().map(item => item.color)
 
   const handleAddTable = () => {
+    // If already in a table, show table menu instead
+    if (editor.isActive('table')) {
+      setShowTableMenu(!showTableMenu)
+      return
+    }
+    // Open professional table insertion dialog
+    setShowTableInsertDialog(true)
+  }
+
+  const handleInsertTable = (rows: number, cols: number, withHeaderRow: boolean) => {
     try {
-      if (editor.can().insertTable({ rows: 3, cols: 3, withHeaderRow: true })) {
-        editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
-      } else {
-        // Fallback: try without header row
-        editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: false }).run()
+      // Ensure we're not in a table before inserting
+      if (editor.isActive('table')) {
+        editor.chain().focus().run()
+        return
       }
+
+      // Insert table with proper structure
+      // Use setTimeout to ensure DOM is ready
+      setTimeout(() => {
+        try {
+          const result = editor
+            .chain()
+            .focus()
+            .insertTable({ 
+              rows, 
+              cols, 
+              withHeaderRow 
+            })
+            .run()
+
+          if (!result) {
+        // Fallback: try without header row
+            editor
+              .chain()
+              .focus()
+              .insertTable({ 
+                rows, 
+                cols, 
+                withHeaderRow: false 
+              })
+              .run()
+          } else {
+            // After insertion, ensure table has proper width constraints
+            setTimeout(() => {
+              try {
+                const tables = document.querySelectorAll('.editor-content table')
+                if (tables.length > 0) {
+                  const lastTable = tables[tables.length - 1] as HTMLTableElement
+                  if (lastTable && lastTable.style) {
+                    lastTable.style.setProperty('width', '100%')
+                    lastTable.style.setProperty('max-width', '100%')
+                    lastTable.style.setProperty('table-layout', 'auto')
+                    lastTable.style.setProperty('overflow', 'hidden')
+                    // Ensure all cells have proper constraints
+                    const cells = lastTable.querySelectorAll('th, td')
+                    cells.forEach((cell) => {
+                      if (cell && cell instanceof HTMLElement && cell.style) {
+                        cell.style.setProperty('max-width', '100%')
+                        cell.style.setProperty('box-sizing', 'border-box')
+                        cell.style.setProperty('overflow', 'hidden')
+                        cell.style.setProperty('word-wrap', 'break-word')
+                        cell.style.setProperty('overflow-wrap', 'break-word')
+                        cell.style.setProperty('word-break', 'break-word')
+                        // Ensure all child elements also respect width
+                        const children = cell.querySelectorAll('*')
+                        children.forEach((child) => {
+                          if (child instanceof HTMLElement && child.style) {
+                            child.style.setProperty('max-width', '100%', 'important')
+                            child.style.setProperty('box-sizing', 'border-box', 'important')
+                            child.style.setProperty('word-wrap', 'break-word', 'important')
+                            child.style.setProperty('overflow-wrap', 'break-word', 'important')
+                            child.style.setProperty('word-break', 'break-word', 'important')
+                          }
+                        })
+                      }
+                    })
+                  }
+                }
+              } catch (styleError) {
+                console.error("Error applying table styles:", styleError)
+              }
+            }, 50)
+          }
     } catch (error) {
       console.error("Error inserting table:", error)
-      alert("Failed to insert table. Please try again.")
+          // Try a simpler approach as last resort
+          try {
+            editor
+              .chain()
+              .focus()
+              .insertTable({ 
+                rows: Math.min(rows, 2), 
+                cols: Math.min(cols, 2), 
+                withHeaderRow: false 
+              })
+              .run()
+          } catch (fallbackError) {
+            console.error("Fallback table insertion also failed:", fallbackError)
+            alert("Failed to insert table. Please try again or refresh the page.")
+          }
+        }
+      }, 10)
+    } catch (error) {
+      console.error("Error in handleInsertTable:", error)
     }
   }
 
@@ -515,6 +613,34 @@ export function EditorToolbar({ editor }) {
         return
       }
       
+      // Validate table structure before operations
+      try {
+        const { state } = editor
+        const { selection } = state
+        const { $anchor } = selection
+        
+        // Check if we can safely access table structure
+        let tableNode = null
+        let depth = $anchor.depth
+        
+        while (depth >= 0 && !tableNode) {
+          const node = $anchor.node(depth)
+          if (node.type.name === 'table') {
+            tableNode = node
+            break
+          }
+          depth--
+        }
+        
+        if (!tableNode) {
+          console.warn(`Cannot ${operationName}: table structure not found`)
+          return
+        }
+      } catch (structureError) {
+        console.error(`Error validating table structure:`, structureError)
+        return
+      }
+      
       // Ensure cursor is in a valid cell
       if (!ensureInTableCell()) {
         console.warn(`Cannot ${operationName}: could not find valid table cell`)
@@ -797,7 +923,7 @@ export function EditorToolbar({ editor }) {
 
   return (
     <>
-      <div className="border-b border-border bg-card p-4 flex gap-2 flex-wrap items-center overflow-x-auto overflow-y-visible relative">
+      <div className="sticky top-0 z-40 border-b border-border/50 bg-card/95 backdrop-blur-xl shadow-sm p-4 flex gap-2 flex-wrap items-center overflow-x-auto overflow-y-visible relative">
         {/* Undo/Redo */}
         <div className="flex gap-1">
           <Button
@@ -806,6 +932,7 @@ export function EditorToolbar({ editor }) {
             onClick={() => editor.chain().focus().undo().run()}
             disabled={!editor.can().undo()}
             title="Undo (Cmd+Z)"
+          className="hover:scale-105 transition-transform duration-200 hover:shadow-md"
           >
             <Undo2 className="w-4 h-4" />
           </Button>
@@ -815,6 +942,7 @@ export function EditorToolbar({ editor }) {
             onClick={() => editor.chain().focus().redo().run()}
             disabled={!editor.can().redo()}
             title="Redo (Cmd+Shift+Z)"
+          className="hover:scale-105 transition-transform duration-200 hover:shadow-md"
           >
             <Redo2 className="w-4 h-4" />
           </Button>
@@ -829,6 +957,7 @@ export function EditorToolbar({ editor }) {
           variant={editor.isActive("bold") ? "default" : "outline"}
           onClick={() => editor.chain().focus().toggleBold().run()}
           title="Bold (Cmd+B)"
+          className="hover:scale-105 transition-all duration-200 hover:shadow-md"
         >
           <Bold className="w-4 h-4" />
         </Button>
@@ -837,6 +966,7 @@ export function EditorToolbar({ editor }) {
           variant={editor.isActive("italic") ? "default" : "outline"}
           onClick={() => editor.chain().focus().toggleItalic().run()}
           title="Italic (Cmd+I)"
+          className="hover:scale-105 transition-all duration-200 hover:shadow-md"
         >
           <Italic className="w-4 h-4" />
         </Button>
@@ -845,6 +975,7 @@ export function EditorToolbar({ editor }) {
           variant={editor.isActive("underline") ? "default" : "outline"}
           onClick={() => editor.chain().focus().toggleUnderline().run()}
           title="Underline (Cmd+U)"
+          className="hover:scale-105 transition-all duration-200 hover:shadow-md"
         >
           <Underline className="w-4 h-4" />
         </Button>
@@ -859,6 +990,7 @@ export function EditorToolbar({ editor }) {
           variant={editor.isActive("heading", { level: 1 }) ? "default" : "outline"}
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
           title="Heading 1"
+          className="hover:scale-105 transition-all duration-200 hover:shadow-md"
         >
           <Heading1 className="w-4 h-4" />
         </Button>
@@ -867,6 +999,7 @@ export function EditorToolbar({ editor }) {
           variant={editor.isActive("heading", { level: 2 }) ? "default" : "outline"}
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
           title="Heading 2"
+          className="hover:scale-105 transition-all duration-200 hover:shadow-md"
         >
           <Heading2 className="w-4 h-4" />
         </Button>
@@ -875,6 +1008,7 @@ export function EditorToolbar({ editor }) {
           variant={editor.isActive("heading", { level: 3 }) ? "default" : "outline"}
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
           title="Heading 3"
+          className="hover:scale-105 transition-all duration-200 hover:shadow-md"
         >
           <Heading3 className="w-4 h-4" />
         </Button>
@@ -1080,6 +1214,7 @@ export function EditorToolbar({ editor }) {
           variant={editor.isActive({ textAlign: 'left' }) ? "default" : "outline"}
           onClick={() => editor.chain().focus().setTextAlign('left').run()}
           title="Align Left"
+          className="hover:scale-105 transition-all duration-200 hover:shadow-md"
         >
           <AlignLeft className="w-4 h-4" />
         </Button>
@@ -1088,6 +1223,7 @@ export function EditorToolbar({ editor }) {
           variant={editor.isActive({ textAlign: 'center' }) ? "default" : "outline"}
           onClick={() => editor.chain().focus().setTextAlign('center').run()}
           title="Align Center"
+          className="hover:scale-105 transition-all duration-200 hover:shadow-md"
         >
           <AlignCenter className="w-4 h-4" />
         </Button>
@@ -1096,6 +1232,7 @@ export function EditorToolbar({ editor }) {
           variant={editor.isActive({ textAlign: 'right' }) ? "default" : "outline"}
           onClick={() => editor.chain().focus().setTextAlign('right').run()}
           title="Align Right"
+          className="hover:scale-105 transition-all duration-200 hover:shadow-md"
         >
           <AlignRight className="w-4 h-4" />
         </Button>
@@ -1104,6 +1241,7 @@ export function EditorToolbar({ editor }) {
           variant={editor.isActive({ textAlign: 'justify' }) ? "default" : "outline"}
           onClick={() => editor.chain().focus().setTextAlign('justify').run()}
           title="Justify"
+          className="hover:scale-105 transition-all duration-200 hover:shadow-md"
         >
           <AlignJustify className="w-4 h-4" />
         </Button>
@@ -1400,6 +1538,7 @@ export function EditorToolbar({ editor }) {
           variant={editor.isActive("blockquote") ? "default" : "outline"}
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
           title="Quote"
+          className="hover:scale-105 transition-all duration-200 hover:shadow-md"
         >
           <Quote className="w-4 h-4" />
         </Button>
@@ -1408,6 +1547,7 @@ export function EditorToolbar({ editor }) {
           variant={editor.isActive("codeBlock") ? "default" : "outline"}
           onClick={() => editor.chain().focus().toggleCodeBlock().run()}
           title="Code Block"
+          className="hover:scale-105 transition-all duration-200 hover:shadow-md"
         >
           <Code className="w-4 h-4" />
         </Button>
@@ -1416,8 +1556,18 @@ export function EditorToolbar({ editor }) {
           variant="outline"
           onClick={() => editor.chain().focus().setHorizontalRule().run()}
           title="Horizontal Rule"
+          className="hover:scale-105 transition-all duration-200 hover:shadow-md"
         >
           <Minus className="w-4 h-4" />
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => editor.chain().focus().setPageBreak().run()}
+          title="Page Break (Cmd+Enter)"
+          className="hover:scale-105 transition-all duration-200 hover:shadow-md"
+        >
+          <FileText className="w-4 h-4" />
         </Button>
       </div>
 
@@ -1430,10 +1580,17 @@ export function EditorToolbar({ editor }) {
           variant={editor.isActive("link") ? "default" : "outline"} 
           onClick={handleAddLink} 
           title="Add/Edit Link"
+          className="hover:scale-105 transition-all duration-200 hover:shadow-md"
         >
           <LinkIcon className="w-4 h-4" />
         </Button>
-        <Button size="sm" variant="outline" onClick={handleAddImage} title="Add Image">
+        <Button 
+          size="sm" 
+          variant="outline" 
+          onClick={handleAddImage} 
+          title="Add Image"
+          className="hover:scale-105 transition-all duration-200 hover:shadow-md"
+        >
           <ImageIcon className="w-4 h-4" />
         </Button>
         {/* Table Menu */}
@@ -1441,15 +1598,9 @@ export function EditorToolbar({ editor }) {
           <Button 
             size="sm" 
             variant={isInTable ? "default" : "outline"} 
-            onClick={() => {
-              if (isInTable) {
-                setShowTableMenu(!showTableMenu)
-              } else {
-                handleAddTable()
-              }
-            }}
-            title="Table Operations"
-            className="gap-1"
+            onClick={handleAddTable}
+            title={isInTable ? "Table Operations" : "Insert Table"}
+            className="gap-1 hover:scale-105 transition-all duration-200 hover:shadow-md"
           >
           <Table2 className="w-4 h-4" />
             {isInTable && <ChevronDown className="w-3 h-3" />}
@@ -1741,11 +1892,24 @@ export function EditorToolbar({ editor }) {
             </div>
           )}
         </div>
-        <Button size="sm" variant="outline" onClick={handleAddPlaceholder} title="Add Placeholder">
+        <Button 
+          size="sm" 
+          variant="outline" 
+          onClick={handleAddPlaceholder} 
+          title="Add Placeholder"
+          className="hover:scale-105 transition-all duration-200 hover:shadow-md"
+        >
           <Code2 className="w-4 h-4" />
         </Button>
       </div>
     </div>
+
+    {/* Table Insert Dialog */}
+    <TableInsertDialog
+      open={showTableInsertDialog}
+      onOpenChange={setShowTableInsertDialog}
+      onInsert={handleInsertTable}
+    />
 
     {/* Link Dialog */}
     <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
